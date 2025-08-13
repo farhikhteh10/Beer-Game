@@ -13,7 +13,11 @@ function BeerGameContent() {
   const [gamePhase, setGamePhase] = useState<"team-selection" | "lobby" | "setup" | "playing" | "results">(
     "team-selection",
   )
-  const { globalState } = useTeam()
+  const { globalState, currentPlayerSession } = useTeam()
+
+  if (currentPlayerSession && gamePhase === "team-selection") {
+    setGamePhase("lobby")
+  }
 
   // Check if all teams are finished to show results
   if (globalState.gamePhase === "results") {
