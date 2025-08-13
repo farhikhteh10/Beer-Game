@@ -73,7 +73,7 @@ export const PLAYER_ROLES: { role: PlayerRole; title: string; description: strin
   {
     role: "retailer",
     title: "خرده‌فروش",
-    description: "آبجو را به مشتریان می‌فروشد و از عمده‌فروش سفارش می‌دهد",
+    description: "نوشابه را به مشتریان می‌فروشد و از عمده‌فروش سفارش می‌دهد",
   },
   {
     role: "wholesaler",
@@ -88,7 +88,7 @@ export const PLAYER_ROLES: { role: PlayerRole; title: string; description: strin
   {
     role: "factory",
     title: "کارخانه",
-    description: "آبجو تولید می‌کند و توزیع‌کنندگان را تأمین می‌کند",
+    description: "نوشابه تولید می‌کند و توزیع‌کنندگان را تأمین می‌کند",
   },
 ]
 

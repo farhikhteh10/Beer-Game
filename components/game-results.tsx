@@ -4,35 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useGame } from "@/contexts/game-context"
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-} from "recharts"
 
 export function GameResults() {
   const { gameState, resetGame } = useGame()
-
-  // Prepare data for charts
-  const weeklyData = Array.from({ length: gameState.currentWeek - 1 }, (_, index) => {
-    const week = index + 1
-    const data: any = { week }
-
-    gameState.players.forEach((player) => {
-      data[`${player.role}_orders`] = player.weeklyOrders[index] || 0
-      data[`${player.role}_costs`] = player.weeklyCosts[index] || 0
-    })
-
-    data.customer_demand = gameState.customerDemand[index] || 4
-    return data
-  })
 
   // Calculate final rankings
   const rankedPlayers = [...gameState.players].sort((a, b) => a.totalCost - b.totalCost)
@@ -98,54 +72,60 @@ export function GameResults() {
         </CardContent>
       </Card>
 
-      {/* Orders Chart */}
+      {/* Orders Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>الگوهای سفارش (اثر شلاق)</CardTitle>
+          <CardTitle>خلاصه الگوهای سفارش (اثر شلاقی)</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="week" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="customer_demand" stroke="#8884d8" name="تقاضای مشتری" strokeWidth={3} />
-                <Line type="monotone" dataKey="retailer_orders" stroke="#82ca9d" name="سفارشات خرده‌فروش" />
-                <Line type="monotone" dataKey="wholesaler_orders" stroke="#ffc658" name="سفارشات عمده‌فروش" />
-                <Line type="monotone" dataKey="distributor_orders" stroke="#ff7300" name="سفارشات توزیع‌کننده" />
-                <Line type="monotone" dataKey="factory_orders" stroke="#8dd1e1" name="سفارشات کارخانه" />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {gameState.players.map((player) => (
+              <div key={player.id} className="p-4 bg-muted rounded-lg">
+                <h4 className="font-semibold mb-2">
+                  {ROLE_NAMES[player.role]} - {player.name}
+                </h4>
+                <div className="space-y-1 text-sm">
+                  <div>کل سفارشات: {player.weeklyOrders.reduce((sum, order) => sum + order, 0)}</div>
+                  <div>
+                    میانگین سفارش:{" "}
+                    {(player.weeklyOrders.reduce((sum, order) => sum + order, 0) / player.weeklyOrders.length).toFixed(
+                      1,
+                    )}
+                  </div>
+                  <div>بیشترین سفارش: {Math.max(...player.weeklyOrders)}</div>
+                  <div>کمترین سفارش: {Math.min(...player.weeklyOrders)}</div>
+                </div>
+              </div>
+            ))}
           </div>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-sm text-muted-foreground mt-4">
             توجه کنید که چگونه تنوع سفارشات در بالادست علی‌رغم تقاضای پایدار مشتری افزایش می‌یابد - این همان اثر شلاق است.
           </p>
         </CardContent>
       </Card>
 
-      {/* Costs Chart */}
+      {/* Costs Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>هزینه‌های هفتگی بر اساس بازیکن</CardTitle>
+          <CardTitle>خلاصه هزینه‌های بازیکنان</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="week" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="retailer_costs" stackId="a" fill="#8884d8" name="خرده‌فروش" />
-                <Bar dataKey="wholesaler_costs" stackId="a" fill="#82ca9d" name="عمده‌فروش" />
-                <Bar dataKey="distributor_costs" stackId="a" fill="#ffc658" name="توزیع‌کننده" />
-                <Bar dataKey="factory_costs" stackId="a" fill="#ff7300" name="کارخانه" />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {rankedPlayers.map((player, index) => (
+              <div key={player.id} className="p-4 bg-muted rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold">
+                    {ROLE_NAMES[player.role]} - {player.name}
+                  </h4>
+                  <Badge variant={index === 0 ? "default" : "secondary"}>#{index + 1}</Badge>
+                </div>
+                <div className="space-y-1 text-sm">
+                  <div>کل هزینه: ${player.totalCost.toFixed(2)}</div>
+                  <div>میانگین هفتگی: ${(player.totalCost / (gameState.currentWeek - 1)).toFixed(2)}</div>
+                  <div>بیشترین هزینه هفتگی: ${Math.max(...player.weeklyCosts).toFixed(2)}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

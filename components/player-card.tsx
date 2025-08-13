@@ -11,6 +11,7 @@ import { useGame } from "@/contexts/game-context"
 
 interface PlayerCardProps {
   player: Player
+  isCurrentPlayer?: boolean
 }
 
 const ROLE_COLORS = {
@@ -27,17 +28,31 @@ const ROLE_NAMES = {
   factory: "کارخانه",
 }
 
-export function PlayerCard({ player }: PlayerCardProps) {
+export function PlayerCard({ player, isCurrentPlayer = false }: PlayerCardProps) {
   const { updatePlayerOrder } = useGame()
   const [orderInput, setOrderInput] = useState(player.outgoingOrder.toString())
+  const [submittingOrder, setSubmittingOrder] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleOrderSubmit = () => {
+  const handleOrderSubmit = async () => {
     const order = Math.max(0, Number.parseInt(orderInput) || 0)
-    updatePlayerOrder(player.id, order)
+    setSubmittingOrder(true)
+    setError(null)
+    try {
+      const success = await updatePlayerOrder(player.id, order)
+      if (!success) {
+        setError("خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.")
+      }
+    } catch (err) {
+      setError("خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.")
+    } finally {
+      setSubmittingOrder(false)
+    }
   }
 
   const handleOrderChange = (value: string) => {
     setOrderInput(value)
+    setError(null)
   }
 
   return (
@@ -49,7 +64,6 @@ export function PlayerCard({ player }: PlayerCardProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Current Status */}
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="space-y-1">
             <div className="flex justify-between">
@@ -81,29 +95,31 @@ export function PlayerCard({ player }: PlayerCardProps) {
           </div>
         </div>
 
-        {/* Order Input */}
-        <div className="space-y-2 pt-2 border-t">
-          <Label htmlFor={`order-${player.id}`} className="text-sm font-medium">
-            ثبت سفارش برای هفته آینده
-          </Label>
-          <div className="flex gap-2">
-            <Input
-              id={`order-${player.id}`}
-              type="number"
-              min="0"
-              value={orderInput}
-              onChange={(e) => handleOrderChange(e.target.value)}
-              placeholder="0"
-              className="flex-1"
-            />
-            <Button onClick={handleOrderSubmit} size="sm">
-              سفارش
-            </Button>
+        {isCurrentPlayer && (
+          <div className="space-y-2 pt-2 border-t">
+            <Label htmlFor={`order-${player.id}`} className="text-sm font-medium">
+              ثبت سفارش برای هفته آینده
+            </Label>
+            {error && <div className="text-xs text-red-600 dark:text-red-400">{error}</div>}
+            <div className="flex gap-2">
+              <Input
+                id={`order-${player.id}`}
+                type="number"
+                min="0"
+                value={orderInput}
+                onChange={(e) => handleOrderChange(e.target.value)}
+                placeholder="0"
+                className="flex-1"
+                disabled={submittingOrder}
+              />
+              <Button onClick={handleOrderSubmit} size="sm" disabled={submittingOrder}>
+                {submittingOrder ? "⏳" : "سفارش"}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">سفارش فعلی: {player.outgoingOrder} واحد</p>
           </div>
-          <p className="text-xs text-muted-foreground">سفارش فعلی: {player.outgoingOrder} واحد</p>
-        </div>
+        )}
 
-        {/* Weekly Performance */}
         {player.weeklyCosts.length > 0 && (
           <div className="pt-2 border-t">
             <div className="flex justify-between text-xs text-muted-foreground mb-1">

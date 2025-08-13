@@ -27,10 +27,10 @@ function BeerGameContent() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-amber-900 dark:text-amber-100 mb-2">بازی توزیع آبجو - چندنفره</h1>
+        <h1 className="text-4xl font-bold text-amber-900 dark:text-amber-100 mb-2">بازی توزیع نوشابه - چندنفره</h1>
         <p className="text-lg text-amber-700 dark:text-amber-300 max-w-2xl mx-auto">
-          اثر شلاق در مدیریت زنجیره تأمین را با دوستان خود تجربه کنید. هر بازیکن یک نقش در زنجیره تأمین آبجو را بر عهده
-          می‌گیرد.
+          اثر شلاق در مدیریت زنجیره تأمین را با دوستان خود تجربه کنید. هر بازیکن یک نقش در زنجیره تأمین نوشابه را بر
+          عهده می‌گیرد.
         </p>
       </div>
 

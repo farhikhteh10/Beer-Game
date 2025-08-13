@@ -97,7 +97,7 @@ export function GameSetup({ onStartGame }: GameSetupProps) {
           </div>
 
           <Button onClick={handleStartGame} className="w-full" size="lg">
-            شروع بازی آبجو
+            شروع بازی نوشابه
           </Button>
         </CardContent>
       </Card>

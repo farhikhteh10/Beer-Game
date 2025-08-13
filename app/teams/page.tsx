@@ -6,15 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { useTeam } from "@/contexts/team-context"
 import { type PlayerRole, PLAYER_ROLES } from "@/types/game"
-import { Users, Crown, Package, Truck, Factory, ArrowRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-const roleIcons = {
-  retailer: Crown,
-  wholesaler: Package,
-  distributor: Truck,
-  factory: Factory,
+const roleEmojis = {
+  retailer: "👑",
+  wholesaler: "📦",
+  distributor: "🚛",
+  factory: "🏭",
 }
 
 export default function TeamsPage() {
@@ -80,7 +79,7 @@ export default function TeamsPage() {
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{team.name}</CardTitle>
                     <Badge variant={team.players.length === 4 ? "default" : "secondary"}>
-                      <Users className="w-3 h-3 ml-1" />
+                      <span className="ml-1">👥</span>
                       {team.players.length}/4
                     </Badge>
                   </div>
@@ -94,10 +93,9 @@ export default function TeamsPage() {
                     <div className="flex flex-wrap gap-1">
                       {PLAYER_ROLES.map((role) => {
                         const player = team.players.find((p) => p.role === role.role)
-                        const Icon = roleIcons[role.role]
                         return (
                           <Badge key={role.role} variant={player ? "default" : "outline"} className="text-xs">
-                            <Icon className="w-3 h-3 ml-1" />
+                            <span className="ml-1">{roleEmojis[role.role]}</span>
                             {player ? player.name : role.title}
                           </Badge>
                         )
@@ -107,13 +105,15 @@ export default function TeamsPage() {
 
                   {team.gameState.gamePhase === "playing" && (
                     <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-950 rounded">
-                      <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">بازی در حال انجام است</div>
+                      <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                        🎮 بازی در حال انجام است
+                      </div>
                     </div>
                   )}
 
                   {team.gameState.gamePhase === "finished" && (
                     <div className="mt-3 p-2 bg-green-50 dark:bg-green-950 rounded">
-                      <div className="text-xs text-green-600 dark:text-green-400 font-medium">بازی تمام شده است</div>
+                      <div className="text-xs text-green-600 dark:text-green-400 font-medium">✅ بازی تمام شده است</div>
                     </div>
                   )}
                 </CardContent>
@@ -149,20 +149,17 @@ export default function TeamsPage() {
                 {PLAYER_ROLES.filter((role) => {
                   const team = createdTeams.find((t) => t.id === selectedTeam)
                   return !team?.players.some((p) => p.role === role.role)
-                }).map((role) => {
-                  const Icon = roleIcons[role.role]
-                  return (
-                    <Button
-                      key={role.role}
-                      variant={selectedRole === role.role ? "default" : "outline"}
-                      onClick={() => setSelectedRole(role.role)}
-                      className="h-auto p-3 flex flex-col items-center gap-1"
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span className="text-xs">{role.title}</span>
-                    </Button>
-                  )
-                })}
+                }).map((role) => (
+                  <Button
+                    key={role.role}
+                    variant={selectedRole === role.role ? "default" : "outline"}
+                    onClick={() => setSelectedRole(role.role)}
+                    className="h-auto p-3 flex flex-col items-center gap-1"
+                  >
+                    <span className="text-lg">{roleEmojis[role.role]}</span>
+                    <span className="text-xs">{role.title}</span>
+                  </Button>
+                ))}
               </div>
             </div>
 
@@ -171,7 +168,7 @@ export default function TeamsPage() {
               disabled={!playerName.trim() || !selectedRole}
               className="w-full bg-amber-600 hover:bg-amber-700"
             >
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <span className="ml-2">➡️</span>
               پیوستن به تیم و شروع بازی
             </Button>
           </CardContent>

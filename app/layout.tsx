@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Vazirmatn } from "next/font/google"
 import "./globals.css"
+import { TeamProvider } from "@/contexts/team-context"
 
 const vazirmatn = Vazirmatn({
   subsets: ["arabic"],
@@ -10,7 +11,7 @@ const vazirmatn = Vazirmatn({
 })
 
 export const metadata: Metadata = {
-  title: "بازی توزیع آبجو",
+  title: "بازی توزیع نوشابه",
   description: "شبیه‌سازی زنجیره تأمین برای یادگیری اثر شلاق",
   generator: "v0.app",
 }
@@ -31,7 +32,9 @@ html {
 }
         `}</style>
       </head>
-      <body>{children}</body>
+      <body>
+        <TeamProvider>{children}</TeamProvider>
+      </body>
     </html>
   )
 }

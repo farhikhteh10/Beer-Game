@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -7,9 +8,22 @@ import { useGame } from "@/contexts/game-context"
 
 export function GameControls() {
   const { gameState, processWeek, resetGame } = useGame()
+  const [processingWeek, setProcessingWeek] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleNextWeek = () => {
-    processWeek()
+  const handleNextWeek = async () => {
+    setProcessingWeek(true)
+    setError(null)
+    try {
+      const success = await processWeek()
+      if (!success) {
+        setError("خطا در پردازش هفته. لطفاً دوباره تلاش کنید.")
+      }
+    } catch (err) {
+      setError("خطا در پردازش هفته. لطفاً دوباره تلاش کنید.")
+    } finally {
+      setProcessingWeek(false)
+    }
   }
 
   const handleResetGame = () => {
@@ -26,16 +40,34 @@ export function GameControls() {
         <CardTitle className="flex items-center justify-between">
           <span>کنترل‌های بازی</span>
           <div className="flex gap-2">
-            <Button onClick={handleNextWeek} size="lg" className="bg-amber-600 hover:bg-amber-700">
-              پردازش هفته {gameState.currentWeek}
+            <Button
+              onClick={handleNextWeek}
+              size="lg"
+              className="bg-amber-600 hover:bg-amber-700"
+              disabled={processingWeek}
+            >
+              {processingWeek ? (
+                <>
+                  <span className="mr-2">⏳</span>
+                  در حال پردازش...
+                </>
+              ) : (
+                `پردازش هفته ${gameState.currentWeek}`
+              )}
             </Button>
-            <Button onClick={handleResetGame} variant="outline" size="lg">
+            <Button onClick={handleResetGame} variant="outline" size="lg" disabled={processingWeek}>
               ریست بازی
             </Button>
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {error && (
+          <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 rounded text-red-600 dark:text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span>پیشرفت بازی</span>

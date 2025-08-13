@@ -4,20 +4,6 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTeam } from "@/contexts/team-context"
 import { calculateBullwhipEffect } from "@/types/game"
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  ScatterChart,
-  Scatter,
-} from "recharts"
 
 export function TeamResultsDashboard() {
   const { globalState, getTeamResults } = useTeam()
@@ -55,51 +41,12 @@ export function TeamResultsDashboard() {
     })
     .sort((a, b) => a.totalCost - b.totalCost)
 
-  // Prepare data for comparison charts
-  const teamComparisonData = teamStats.map((team) => ({
-    teamName: team.teamName,
-    totalCost: team.totalCost,
-    bullwhipEffect: team.bullwhipEffect,
-    avgCost: team.avgCostPerPlayer,
-  }))
-
-  // Prepare bullwhip effect data for all teams
-  const bullwhipData = finishedTeams
-    .map((team) => {
-      const retailer = team.players.find((p) => p.role === "retailer")
-      const factory = team.players.find((p) => p.role === "factory")
-
-      if (!retailer || !factory) return null
-
-      return Array.from({ length: Math.min(retailer.weeklyOrders.length, factory.weeklyOrders.length) }, (_, week) => ({
-        week: week + 1,
-        teamName: team.name,
-        [`${team.name}_retailer`]: retailer.weeklyOrders[week] || 0,
-        [`${team.name}_factory`]: factory.weeklyOrders[week] || 0,
-        customerDemand: team.gameState.customerDemand[week] || 4,
-      }))
-    })
-    .filter(Boolean)
-
   const ROLE_NAMES = {
     retailer: "خرده‌فروش",
     wholesaler: "عمده‌فروش",
     distributor: "توزیع‌کننده",
     factory: "کارخانه",
   }
-
-  const colors = [
-    "#8884d8",
-    "#82ca9d",
-    "#ffc658",
-    "#ff7300",
-    "#8dd1e1",
-    "#d084d0",
-    "#ffb347",
-    "#87ceeb",
-    "#dda0dd",
-    "#98fb98",
-  ]
 
   return (
     <div className="space-y-6">
@@ -120,10 +67,9 @@ export function TeamResultsDashboard() {
       </Card>
 
       <Tabs defaultValue="rankings" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="rankings">رتبه‌بندی تیم‌ها</TabsTrigger>
           <TabsTrigger value="comparison">مقایسه عملکرد</TabsTrigger>
-          <TabsTrigger value="bullwhip">اثر شلاقی</TabsTrigger>
           <TabsTrigger value="insights">تحلیل و بینش</TabsTrigger>
         </TabsList>
 
@@ -178,126 +124,64 @@ export function TeamResultsDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>مقایسه کل هزینه‌ها</CardTitle>
+                <CardTitle>آمار کل هزینه‌ها</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={teamComparisonData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="teamName" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="totalCost" fill="#8884d8" name="کل هزینه" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                      <div className="text-lg font-bold text-green-600">
+                        ${Math.min(...teamStats.map((t) => t.totalCost)).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">کمترین هزینه</div>
+                    </div>
+                    <div className="p-3 bg-amber-50 dark:bg-amber-950 rounded-lg">
+                      <div className="text-lg font-bold text-amber-600">
+                        ${(teamStats.reduce((sum, t) => sum + t.totalCost, 0) / teamStats.length).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">میانگین</div>
+                    </div>
+                    <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg">
+                      <div className="text-lg font-bold text-red-600">
+                        ${Math.max(...teamStats.map((t) => t.totalCost)).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">بیشترین هزینه</div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>اثر شلاقی در تیم‌ها</CardTitle>
+                <CardTitle>آمار اثر شلاقی</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart data={teamComparisonData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="totalCost" name="کل هزینه" />
-                      <YAxis dataKey="bullwhipEffect" name="اثر شلاقی" />
-                      <Tooltip cursor={{ strokeDasharray: "3 3" }} />
-                      <Scatter dataKey="bullwhipEffect" fill="#82ca9d" />
-                    </ScatterChart>
-                  </ResponsiveContainer>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                      <div className="text-lg font-bold text-green-600">
+                        {Math.min(...teamStats.map((t) => t.bullwhipEffect)).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">کمترین اثر</div>
+                    </div>
+                    <div className="p-3 bg-amber-50 dark:bg-amber-950 rounded-lg">
+                      <div className="text-lg font-bold text-amber-600">
+                        {(teamStats.reduce((sum, t) => sum + t.bullwhipEffect, 0) / teamStats.length).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">میانگین</div>
+                    </div>
+                    <div className="p-3 bg-red-50 dark:bg-red-950 rounded-lg">
+                      <div className="text-lg font-bold text-red-600">
+                        {Math.max(...teamStats.map((t) => t.bullwhipEffect)).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">بیشترین اثر</div>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  تیم‌هایی که اثر شلاقی کمتری دارند، معمولاً هزینه‌های کمتری نیز دارند.
-                </p>
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-
-        {/* Bullwhip Effect Analysis */}
-        <TabsContent value="bullwhip" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>مقایسه الگوهای سفارش تیم‌ها</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-96">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={bullwhipData[0] || []}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="week" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="customerDemand"
-                      stroke="#000000"
-                      strokeWidth={3}
-                      name="تقاضای مشتری"
-                    />
-                    {finishedTeams.map((team, index) => (
-                      <Line
-                        key={`${team.name}_factory`}
-                        type="monotone"
-                        dataKey={`${team.name}_factory`}
-                        stroke={colors[index % colors.length]}
-                        name={`${team.name} - کارخانه`}
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                مقایسه سفارشات کارخانه‌ها با تقاضای واقعی مشتری. انحراف بیشتر نشان‌دهنده اثر شلاقی قوی‌تر است.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>آمار اثر شلاقی</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">
-                    {Math.min(...teamStats.map((t) => t.bullwhipEffect)).toFixed(2)}
-                  </div>
-                  <div className="text-sm text-muted-foreground">کمترین اثر شلاقی</div>
-                  <div className="text-xs mt-1">
-                    {
-                      teamStats.find((t) => t.bullwhipEffect === Math.min(...teamStats.map((s) => s.bullwhipEffect)))
-                        ?.teamName
-                    }
-                  </div>
-                </div>
-                <div className="text-center p-4 bg-amber-50 dark:bg-amber-950 rounded-lg">
-                  <div className="text-2xl font-bold text-amber-600">
-                    {(teamStats.reduce((sum, t) => sum + t.bullwhipEffect, 0) / teamStats.length).toFixed(2)}
-                  </div>
-                  <div className="text-sm text-muted-foreground">میانگین اثر شلاقی</div>
-                </div>
-                <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600">
-                    {Math.max(...teamStats.map((t) => t.bullwhipEffect)).toFixed(2)}
-                  </div>
-                  <div className="text-sm text-muted-foreground">بیشترین اثر شلاقی</div>
-                  <div className="text-xs mt-1">
-                    {
-                      teamStats.find((t) => t.bullwhipEffect === Math.max(...teamStats.map((s) => s.bullwhipEffect)))
-                        ?.teamName
-                    }
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         {/* Insights and Analysis */}
