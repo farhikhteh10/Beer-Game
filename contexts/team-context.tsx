@@ -113,6 +113,31 @@ export function TeamProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     loadInitialData()
+
+    const pollInterval = setInterval(() => {
+      refreshTeams()
+    }, 2000)
+
+    const handleCustomStorageChange = (e: CustomEvent) => {
+      if (e.detail?.key?.startsWith("shared_beer-game-")) {
+        refreshTeams()
+      }
+    }
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key?.startsWith("shared_beer-game-")) {
+        refreshTeams()
+      }
+    }
+
+    window.addEventListener("sharedStorageUpdate", handleCustomStorageChange as EventListener)
+    window.addEventListener("storage", handleStorageChange)
+
+    return () => {
+      clearInterval(pollInterval)
+      window.removeEventListener("sharedStorageUpdate", handleCustomStorageChange as EventListener)
+      window.removeEventListener("storage", handleStorageChange)
+    }
   }, [])
 
   const loadInitialData = async () => {
